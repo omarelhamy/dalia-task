@@ -2,16 +2,14 @@
   "name": "dalia",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server/app.js",
   "scripts": {
-    "start": "live-server index.html --watch"
+    "start": "live-server index.html --watch",
+    "serve": "nodemon server/app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "axios": "^0.21.1",
-    "live-server": "^1.2.1"
-  },
+  "devDependencies": {},
   "dependencies": {}
 }

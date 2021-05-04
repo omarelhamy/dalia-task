@@ -8,7 +8,7 @@
       rel="stylesheet"
       integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
       crossorigin="anonymous"
-    />    
+    />
     <link rel="stylesheet" href="styles.css" />
     <title>Dalia task</title>
   </head>
@@ -27,10 +27,47 @@
     </nav>
 
     <div class="container d-flex align-items-center justify-content-center">
-      <div style="width: 200px; height: 20px; background: red"></div>
+      <div class="table-responsive" style="width: 100%">
+        <table class="table">
+          <thead>
+            <th>Email</th>
+            <th>Created At</th>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <email-subscription color="" iconColor="" icon="far fa-envelope" iconOpened="far fa-envelope-open"></email-subscription>
+    <email-subscription
+      icon="far fa-envelope"
+      iconOpened="far fa-envelope-open"
+      onSubmit="loadEmails"
+    ></email-subscription>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
+      integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      loadEmails = () => {
+        fetch("http://localhost:3000")
+          .then((res) => res.json())
+          .then((res) => {
+            document.querySelector("tbody").innerHTML = "";
+            res.forEach((data) => {
+              const { email, createdAt } = data;
+              let elem = document.createElement("tr");
+              elem.innerHTML = `
+            <td>${email}</td>
+            <td>${moment(createdAt).fromNow()}</td>
+            `;
+              document.querySelector("tbody").appendChild(elem);
+            });
+          });
+      };
+      loadEmails();
+    </script>
     <script src="./dist/email-subscription.js"></script>
   </body>
 </html>

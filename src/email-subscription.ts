@@ -3,8 +3,20 @@ template.innerHTML = `
 <style>
     @import 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css';
 
+
+
     * {
         box-sizing: border-box;
+    }
+
+    a {
+        display: inline-block;
+        text-decoration: none;
+    }
+
+    a span {
+        color: white;
+        font-weight: bold;
     }
 
     .floating-widget {
@@ -21,7 +33,10 @@ template.innerHTML = `
         box-shadow: 2px 2px 3px #999;
         align-items: center;
         justify-content: center;
-        text-decoration: none;
+    }
+
+    .floating-popup.show {
+        opacity: 1;
     }
 
     .floating-popup {
@@ -35,6 +50,9 @@ template.innerHTML = `
         border-radius: 10px;
         color: white;
         box-shadow: 2px 2px 3px #999;    
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.4s;
     }
 
     .floating-popup p {
@@ -49,6 +67,18 @@ template.innerHTML = `
         outline: none;
         color: white;
         padding: 8px 15px;
+        border-bottom: solid 1px rgba(255, 255, 255, .5);
+    }
+
+    input:focus {
+        border-bottom: solid 1px white;
+    }
+
+    .powered-by {
+        font-size: 12px;
+        text-align: center;
+        color: #ccc;
+        margin-top: 20px;
     }
 
     ::placeholder {
@@ -69,14 +99,20 @@ template.innerHTML = `
 </a>
 
 <div class="floating-popup">
-    <p>Subscribe to our newsletter</p>
+    <p id="subscripe-message">Subscribe to our newsletter</p>
+    <p class="thanks-message" style="display:none">Thanks for subscribing to Dalia's newsletter.</p>
+    <p class="thanks-message" style="display:none; font-size: 12px; opacity: 0.5; margin-bottom: 0">This will be hidden after <span id="counter">5</span> seconds</p>
     <form>
-        <input placeholder="Please enter your email and press Enter." type="email" />
+        <input placeholder="Please enter your email and press Enter." type="email" required />
+        <a class="powered-by" href="https://www.dalialabs.com/" target="_blank">
+            Powered by <span>Dalia</span>
+        </a>
     </form>
 </div>
 `;
 
 class EmailSubscription extends HTMLElement {
+  callback: string;
   constructor() {
     super();
 
@@ -86,25 +122,96 @@ class EmailSubscription extends HTMLElement {
     const floatingWidget: HTMLElement = this.shadowRoot.querySelector(
       ".floating-widget"
     );
-    floatingWidget.style.backgroundColor =
-      this.getAttribute("color") || "#5C00F5";
-    floatingWidget.style.color = this.getAttribute("iconColor") || "#fff";
+
     floatingWidget.querySelector("i").className =
       this.getAttribute("icon") || "far fa-envelope";
+
+    this.callback = this.getAttribute("onSubmit") || "";
 
     this.appendStyle(
       "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
     );
   }
 
+  validateEmail = (email) => {
+    const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+  };
+
+  submitEmail = (e) => {
+    e.preventDefault();
+    let count = 5;
+    const counter = this.shadowRoot.getElementById("counter");
+    const emailInput = this.shadowRoot.querySelector("input");
+
+    if (this.validateEmail(emailInput.value)) {
+      fetch("http://localhost:3000/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: emailInput.value }),
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          if (this.callback && this.callback != "") window[this.callback]();
+
+          emailInput.style.display = "none";
+          this.shadowRoot.getElementById("subscripe-message").style.display =
+            "none";
+          this.shadowRoot
+            .querySelectorAll(".thanks-message")
+            .forEach((item: HTMLElement) => (item.style.display = "block"));
+
+          const interval = setInterval(() => {
+            if (count == 0) clearInterval(interval);
+            else count--;
+            counter.innerText = count.toString();
+          }, 1000);
+
+          setTimeout(() => {
+            this.shadowRoot.querySelector(".floating-widget").remove();
+            this.shadowRoot.querySelector(".floating-popup").remove();
+          }, 5000);
+        });
+    }
+  };
+
+  togglePopUp = (e) => {
+    const floatingPop = this.shadowRoot.querySelector(".floating-popup");
+    const emailInput = this.shadowRoot.querySelector("input");
+
+    floatingPop.classList.toggle("show");
+    emailInput.value = "";
+
+    let floatingWidget = this.shadowRoot.querySelector(".floating-widget");
+    if (floatingPop.classList.contains("show"))
+      floatingWidget.querySelector("i").className =
+        this.getAttribute("iconOpened") || "far fa-envelope-open";
+    else
+      floatingWidget.querySelector("i").className =
+        this.getAttribute("icon") || "far fa-envelope";
+  };
+
   connectedCallback() {
-    this.shadowRoot.querySelector("form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      console.log(this.shadowRoot.querySelector("input").value);
-    });
+    this.shadowRoot
+      .querySelector("form")
+      .addEventListener("submit", this.submitEmail);
+
+    this.shadowRoot
+      .querySelector(".floating-widget")
+      .addEventListener("click", this.togglePopUp);
   }
 
-  disConnectedCallback() {}
+  disConnectedCallback() {
+    this.shadowRoot
+      .querySelector("form")
+      .removeEventListener("submit", this.submitEmail);
+
+    this.shadowRoot
+      .querySelector(".floating-widget")
+      .removeEventListener("click", this.togglePopUp);
+  }
 
   appendStyle(url: string) {
     const link = document.createElement("link");
