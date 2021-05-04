@@ -51,7 +51,7 @@
     ></script>
     <script>
       loadEmails = () => {
-        fetch("http://localhost:3000")
+        fetch("https://dalia-task.herokuapp.com/")
           .then((res) => res.json())
           .then((res) => {
             document.querySelector("tbody").innerHTML = "";

@@ -145,7 +145,7 @@ class EmailSubscription extends HTMLElement {
     const emailInput = this.shadowRoot.querySelector("input");
 
     if (this.validateEmail(emailInput.value)) {
-      fetch("http://localhost:3000/", {
+      fetch("https://dalia-task.herokuapp.com/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
