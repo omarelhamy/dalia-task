@@ -2,8 +2,7 @@ let template = document.createElement("template");
 template.innerHTML = `
 <style>
     @import 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css';
-
-
+		@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap');
 
     * {
         box-sizing: border-box;
@@ -52,6 +51,7 @@ template.innerHTML = `
         box-shadow: 2px 2px 3px #999;    
         text-align: center;
         opacity: 0;
+				font-family: 'Roboto', sans-serif;
         transition: opacity 0.4s;
     }
 
